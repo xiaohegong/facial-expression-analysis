@@ -22,8 +22,6 @@ class CNN(nn.Module):
         self.bn1 = nn.BatchNorm2d(48)
         self.conv2 = nn.Conv2d(48, 48, 3)
         self.bn2 = nn.BatchNorm2d(48)
-        self.conv3 = nn.Conv2d(48, 48, 3)
-        self.bn3 = nn.BatchNorm2d(48)
         self.maxpool1 = nn.MaxPool2d(2) # decrease dimensionality
 
         input_dims = self.calc_input_dims()
@@ -39,7 +37,6 @@ class CNN(nn.Module):
         batch_data = T.zeros((1, 1, 48, 48))
         batch_data = self.conv1(batch_data)
         batch_data = self.conv2(batch_data)
-        batch_data = self.conv3(batch_data)
         batch_data = self.maxpool1(batch_data)
 
         return int(np.prod(batch_data.size()))
@@ -52,10 +49,6 @@ class CNN(nn.Module):
 
         batch_data = self.conv2(batch_data)
         batch_data = self.bn2(batch_data)
-        batch_data = F.relu(batch_data)
-
-        batch_data = self.conv3(batch_data)
-        batch_data = self.bn3(batch_data)
         batch_data = F.relu(batch_data)
 
         batch_data = self.maxpool1(batch_data)
