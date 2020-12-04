@@ -118,6 +118,7 @@ class CNN(nn.Module):
             self.loss_history.append(ep_loss)
     
     def _test(self):
+        self.eval()
         ep_loss = 0
         ep_acc = []
         for _, (input, label) in enumerate(self.test_data_loader):
