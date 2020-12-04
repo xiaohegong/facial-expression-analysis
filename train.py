@@ -4,6 +4,7 @@ import os
 
 import matplotlib.pyplot as plt
 
+import torch as T
 from model.cnn import CNN
 
 
@@ -22,6 +23,11 @@ if __name__ == "__main__":
 
     # extract data into correct format: list of [input, label]
     dataset = load_data(images, labels)
-    model = CNN(alpha=0.001, epochs=10, batch_size=128, dataset=dataset, num_classes=7)
+    model = CNN(alpha=0.001, epochs=25, batch_size=128, dataset=dataset, num_classes=7)
     model._train()
-    model.save(model, "model_data/cnn.pt")
+
+    dst_path = "model_data/cnn.pt"
+    if not os.path.exists(os.path.dirname(dst_path)):
+        os.makedirs(os.path.dirname(dst_path))
+
+    T.save(model, dst_path)
