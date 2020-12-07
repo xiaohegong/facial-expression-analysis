@@ -23,7 +23,11 @@ if __name__ == "__main__":
 
     # extract data into correct format: list of [input, label]
     dataset = load_data(images, labels)
-    model = CNN(alpha=0.001, epochs=25, batch_size=128, dataset=dataset, num_classes=7)
+    np.random.shuffle(dataset)
+    len = dataset.shape[0]
+    spliter = np.split(dataset, [int(np.floor(len * 0.7)), int(len)])
+
+    model = CNN(alpha=0.001, epochs=10, batch_size=128, dataset=spliter, num_classes=7)
     model._train()
 
     dst_path = "model_data/cnn.pt"
