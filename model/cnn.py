@@ -17,11 +17,10 @@ class CNN(nn.Module):
         self.num_classes = num_classes
         self.loss_history = []
         self.acc_history = []
+        self.device = T.device('cuda:0' if T.cuda.is_available() else 'cpu')
 
-        self.conv1 = nn.Conv2d(1, 48, 3)
+        self.conv1 = nn.Conv2d(1, 48, 3) # input channel, output channel, kernel size
         self.bn1 = nn.BatchNorm2d(48)
-        self.conv2 = nn.Conv2d(48, 48, 3)
-        self.bn2 = nn.BatchNorm2d(48)
         self.maxpool1 = nn.MaxPool2d(2) # decrease dimensionality
 
         input_dims = self.calc_input_dims()
@@ -31,24 +30,21 @@ class CNN(nn.Module):
         self.optimizer = optim.Adam(self.parameters(), lr=self.alpha)
 
         self.loss = nn.CrossEntropyLoss()
+        self.to(self.device)
         self.get_data()
 
     def calc_input_dims(self):
-        batch_data = T.zeros((1, 1, 48, 48))
+        batch_data = T.zeros((1, 1, 48, 48)) # batch_size, channel, row, col
         batch_data = self.conv1(batch_data)
-        batch_data = self.conv2(batch_data)
+        # batch_data = self.conv2(batch_data)
         batch_data = self.maxpool1(batch_data)
 
         return int(np.prod(batch_data.size()))
 
     def forward(self, batch_data):
-
+        
         batch_data = self.conv1(batch_data)
         batch_data = self.bn1(batch_data)
-        batch_data = F.relu(batch_data)
-
-        batch_data = self.conv2(batch_data)
-        batch_data = self.bn2(batch_data)
         batch_data = F.relu(batch_data)
 
         batch_data = self.maxpool1(batch_data)
@@ -62,14 +58,8 @@ class CNN(nn.Module):
     def get_data(self):
         # split dataset into 80% training data and 20% testing data
         print("==============Starting loading data==============")
-        # shuffle
-        # self.dataset = np.random.shuffle(self.dataset)
-        np.random.shuffle(self.dataset)
-        len = self.dataset.shape[0]
-        spliter = np.split(self.dataset, [int(np.floor(len * 0.7)), int(len)])
-
-        self.train_data_loader = spliter[0]
-        self.test_data_loader = spliter[1]
+        self.train_data_loader = self.dataset[0]
+        self.test_data_loader = self.dataset[1]
         print("size of training data", self.train_data_loader.shape)
         print("size of test data", self.test_data_loader.shape)
         print("=====================Done!=======================")
@@ -82,9 +72,9 @@ class CNN(nn.Module):
             ep_acc = []
             for _, (input, label) in enumerate(self.train_data_loader):
                 input = T.tensor(input)
-                input = T.reshape(input, (1, 1, 48, 48))
+                input = T.reshape(input, (1, 1, 48, 48)).to(self.device)
                 label = T.tensor([label])
-                label = label.type(T.LongTensor)
+                label = label.type(T.LongTensor).to(self.device)
                 # label = T.reshape(label, (1, 1, 7))
                 self.optimizer.zero_grad()
                 prediction = self.forward(input)
@@ -96,10 +86,10 @@ class CNN(nn.Module):
                 # print("correct!")
                 class_ = T.argmax(prediction, dim=1)
                 wrong = T.where(class_ != label, 
-                                T.tensor([1.]),
-                                T.tensor([0.]))
+                                T.tensor([1.]).to(self.device),
+                                T.tensor([0.]).to(self.device))
                 
-                acc = 1 - T.sum(wrong) / self.batch_size
+                acc = 1 - T.sum(wrong)
 
                 ep_acc.append(acc.item())
                 self.acc_history.append(acc.item())
@@ -116,21 +106,26 @@ class CNN(nn.Module):
         ep_acc = []
         for _, (input, label) in enumerate(self.test_data_loader):
             input = T.tensor(input)
-            input = T.reshape(input, (1, 1, 48, 48))
+            input = T.reshape(input, (1, 1, 48, 48)).to(self.device)
             label = T.tensor([label])
-            label = label.type(T.LongTensor)
+            label = label.type(T.LongTensor).to(self.device)
             prediction = self.forward(input)
             loss = self.loss(prediction, label)
             prediction = F.softmax(prediction, dim=1)
             class_ = T.argmax(prediction, dim=1)
             wrong = T.where(class_ != label, 
-                            T.tensor([1.]), 
-                            T.tensor([0.]))
+                            T.tensor([1.]).to(self.device), 
+                            T.tensor([0.]).to(self.device))
             
-            acc = 1 - T.sum(wrong) / self.batch_size
+            acc = 1 - T.sum(wrong)
 
             ep_acc.append(acc.item())
             ep_loss += loss.item()
 
         print('total loss %.3f' % ep_loss,
                 'accuracy %.3f' % np.mean(ep_acc))
+
+
+if __name__ == "__main__":
+    if T.cuda.is_available():
+        print("available!")
