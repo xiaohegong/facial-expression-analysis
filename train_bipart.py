@@ -12,7 +12,7 @@ if __name__ == "__main__":
     datapath = os.path.join("data", "CK_bipart_data.h5")
     f = h5py.File(datapath, "r")
     eyes = np.array(f['mouth_samples'])
-    mouths = np.array(f['mouth_samples'])
+    mouths = np.array(f['eyes_samples'])
     labels = np.array(f['data_labels'])
 
     # extract data into correct format: list of [input, label]
