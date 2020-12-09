@@ -1,4 +1,4 @@
-import torch as torch
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 
 
 class CNNByParts(nn.Module):
-    def __init__(self, alpha, epochs, batch_size, mouth_dataset, eyes_dataset, num_classes=7):
+    def __init__(self, alpha, epochs, batch_size, dataset, num_classes=7):
         super(CNNByParts, self).__init__()
-        self.eyes_dataset = eyes_dataset
-        self.mouth_dataset = mouth_dataset
+        self.dataset = dataset
 
         self.epochs = epochs
         self.alpha = alpha
@@ -22,26 +21,27 @@ class CNNByParts(nn.Module):
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         self.cnn_layer1 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=2)
+            nn.Conv2d(1, 48, kernel_size=5, stride=1, padding=1),
+            nn.MaxPool2d(kernel_size=1)
         )
 
         self.cnn_layer2 = nn.Sequential(
+            nn.Conv2d(48, 96, kernel_size=5, stride=1, padding=1),
+            nn.MaxPool2d(kernel_size=1)
+        )
+
+        self.cnn_layer3 = nn.Sequential(
             nn.Conv2d(1, 48, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=2)
+            nn.MaxPool2d(kernel_size=1)
         )
 
-        self.cnn_layer1 = nn.Sequential(
-            nn.Conv2d(1, 64, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=2)
+        self.cnn_layer4 = nn.Sequential(
+            nn.Conv2d(48, 96, kernel_size=5, stride=1, padding=1),
+            nn.MaxPool2d(kernel_size=1)
         )
 
-        self.cnn_layer2 = nn.Sequential(
-            nn.Conv2d(1, 48, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=2)
-        )
 
-        self.fc1 = nn.Linear(256, self.num_classes)
+        self.fc1 = nn.Linear(self.calc_input_dims(), self.num_classes)
 
         self.optimizer = optim.Adam(self.parameters(), lr=self.alpha)
 
@@ -49,33 +49,43 @@ class CNNByParts(nn.Module):
         self.to(self.device)
         self.get_data()
 
+    def calc_input_dims(self):
+        batch_data = torch.zeros((1, 1, 32, 64)) # batch_size, channel, row, col
+        batch_data = self.cnn_layer1(batch_data)
+        batch_data = self.cnn_layer2(batch_data)
 
+        return int(np.prod(batch_data.size())) * 2
 
-    def forward(self, batch_data):
+    def forward(self, eye, mouth):
 
-        batch_data = self.conv1(batch_data)
-        batch_data = self.bn1(batch_data)
-        batch_data = F.relu(batch_data)
+        eye = self.cnn_layer1(eye)
+        eye = F.relu(eye)
+        eye = self.cnn_layer2(eye)
+        eye = F.relu(eye)
+        eye = eye.view(eye.size()[0], -1)
 
-        batch_data = self.maxpool1(batch_data)
+        mouth = self.cnn_layer1(mouth)
+        mouth = F.relu(mouth)
+        mouth = self.cnn_layer2(mouth)
+        mouth = F.relu(mouth)
+        mouth = mouth.view(mouth.size()[0], -1)
 
-        batch_data = batch_data.view(batch_data.size()[0], -1)
-
-        classes = self.fc1(batch_data)
-        # print("done: ", classes)
+        concate = torch.cat((eye, mouth), dim=1)
+        # print(concate)
+        classes = self.fc1(concate)
         return classes
 
     def get_data(self):
         # split dataset into 70% training data and 30% testing data
         print("==============Starting loading data==============")
-        self.eyes_train_data_loader = self.eyes_dataset[0]
-        self.eyes_test_data_loader = self.eyes_dataset[1]
-        self.mouth_train_data_loader = self.mouth_dataset[0]
-        self.mouth_test_data_loader = self.mouth_dataset[1]
-        print("size of eyes training data", self.eyes_train_data_loader.shape)
-        print("size of eyes test data", self.eyes_test_data_loader.shape)
-        print("size of mouth training data", self.mouth_train_data_loader.shape)
-        print("size of mouth test data", self.mouth_test_data_loader.shape)
+        self.train_data_loader = self.dataset[0]
+        self.test_data_loader = self.dataset[1]
+        print(self.train_data_loader.shape)
+        print(self.test_data_loader.shape)
+        # print("size of eyes training data", self.eyes_train_data_loader.shape)
+        # print("size of eyes test data", self.eyes_test_data_loader.shape)
+        # print("size of mouth training data", self.mouth_train_data_loader.shape)
+        # print("size of mouth test data", self.mouth_test_data_loader.shape)
         print("=====================Done!=======================")
 
     def _train(self):
@@ -83,14 +93,18 @@ class CNNByParts(nn.Module):
         for i in range(self.epochs):
             ep_loss = 0
             ep_acc = []
-            for _, (input, label) in enumerate(self.train_data_loader):
-                input = torch.tensor(input)
-                input = torch.reshape(input, (1, 1, 48, 48)).to(self.device)
-                label = torch.tensor([label])
+            for _, (eyes, mouths) in enumerate(self.train_data_loader):
+                # print(eyes.shape, mouth.shape)
+                # break
+                eye = torch.tensor(eyes[0])
+                eye = torch.reshape(eye, (1, 1, 32, 64)).to(self.device)
+                mouth = torch.tensor(mouths[0])
+                mouth = torch.reshape(mouth, (1, 1, 32, 64)).to(self.device)
+                label = torch.tensor([eyes[1]])
                 label = label.type(torch.LongTensor).to(self.device)
                 # label = torch.reshape(label, (1, 1, 7))
                 self.optimizer.zero_grad()
-                prediction = self.forward(input)
+                prediction = self.forward(eye, mouth)
                 # print(prediction)
                 loss = self.loss(prediction, label)
                 # print("Losssssssssssss:", loss)
@@ -117,10 +131,12 @@ class CNNByParts(nn.Module):
         self.eval()
         ep_loss = 0
         ep_acc = []
-        for _, (input, label) in enumerate(self.test_data_loader):
-            input = torch.tensor(input)
-            input = torch.reshape(input, (1, 1, 48, 48)).to(self.device)
-            label = torch.tensor([label])
+        for _, (eyes, mouth) in enumerate(self.test_data_loader):
+            eyes = torch.tensor(eyes[0])
+            eyes = torch.reshape(eyes, (1, 1, 32, 64)).to(self.device)
+            mouth = torch.tensor(mouth[0])
+            mouth = torch.reshape(mouth, (1, 1, 32, 64)).to(self.device)
+            label = torch.tensor([eyes[1]])
             label = label.type(torch.LongTensor).to(self.device)
             prediction = self.forward(input)
             loss = self.loss(prediction, label)
