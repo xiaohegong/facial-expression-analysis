@@ -21,25 +21,24 @@ class CNNByParts(nn.Module):
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
 
         self.cnn_layer1 = nn.Sequential(
-            nn.Conv2d(1, 48, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=1)
+            nn.Conv2d(1, 48, kernel_size=5, stride=1, padding=2),
+            nn.MaxPool2d(kernel_size=2)
         )
 
         self.cnn_layer2 = nn.Sequential(
-            nn.Conv2d(48, 96, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=1)
+            nn.Conv2d(48, 1, kernel_size=5, stride=1, padding=2),
+            nn.MaxPool2d(kernel_size=2)
         )
 
         self.cnn_layer3 = nn.Sequential(
-            nn.Conv2d(1, 48, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=1)
+            nn.Conv2d(1, 48, kernel_size=5, stride=1, padding=2),
+            nn.MaxPool2d(kernel_size=2)
         )
 
         self.cnn_layer4 = nn.Sequential(
-            nn.Conv2d(48, 96, kernel_size=5, stride=1, padding=1),
-            nn.MaxPool2d(kernel_size=1)
+            nn.Conv2d(48, 1, kernel_size=5, stride=1, padding=2),
+            nn.MaxPool2d(kernel_size=2)
         )
-
 
         self.fc1 = nn.Linear(self.calc_input_dims(), self.num_classes)
 
@@ -57,22 +56,16 @@ class CNNByParts(nn.Module):
         return int(np.prod(batch_data.size())) * 2
 
     def forward(self, eye, mouth):
-
         eye = self.cnn_layer1(eye)
-        eye = F.relu(eye)
         eye = self.cnn_layer2(eye)
-        eye = F.relu(eye)
         eye = eye.view(eye.size()[0], -1)
 
-        mouth = self.cnn_layer1(mouth)
-        mouth = F.relu(mouth)
-        mouth = self.cnn_layer2(mouth)
-        mouth = F.relu(mouth)
+        mouth = self.cnn_layer3(mouth)
+        mouth = self.cnn_layer4(mouth)
         mouth = mouth.view(mouth.size()[0], -1)
 
-        concate = torch.cat((eye, mouth), dim=1)
-        # print(concate)
-        classes = self.fc1(concate)
+        concat = torch.cat((eye, mouth), dim=1)
+        classes = self.fc1(concat)
         return classes
 
     def get_data(self):
@@ -132,13 +125,13 @@ class CNNByParts(nn.Module):
         ep_loss = 0
         ep_acc = []
         for _, (eyes, mouth) in enumerate(self.test_data_loader):
-            eyes = torch.tensor(eyes[0])
-            eyes = torch.reshape(eyes, (1, 1, 32, 64)).to(self.device)
-            mouth = torch.tensor(mouth[0])
-            mouth = torch.reshape(mouth, (1, 1, 32, 64)).to(self.device)
+            eye = torch.tensor(eyes[0])
+            eye = torch.reshape(eye, (1, 1, 32, 64)).to(self.device)
+            mouths = torch.tensor(mouth[0])
+            mouths = torch.reshape(mouths, (1, 1, 32, 64)).to(self.device)
             label = torch.tensor([eyes[1]])
             label = label.type(torch.LongTensor).to(self.device)
-            prediction = self.forward(input)
+            prediction = self.forward(eye, mouths)
             loss = self.loss(prediction, label)
             prediction = F.softmax(prediction, dim=1)
             class_ = torch.argmax(prediction, dim=1)
