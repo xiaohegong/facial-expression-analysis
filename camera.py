@@ -3,15 +3,25 @@ import cv2 as cv
 from PIL import Image, ImageTk
 import time
 import numpy as np
+from process_face import detect_bipart
+import torch
+from detect_face import detect_face, setup
+import multiprocessing
+
+from model.vgg16 import VGG16
 
 class FERApp:
-    def __init__(self, vid_src=0):
+    def __init__(self, model, vid_src=0):
+        self.counter = 0
+        self.detector, self.predictor = setup()
+        self.counter = 0
+        self.model = model
         self.name = "FER converter"
         self.vid_src = vid_src
         self.add_widgets()
         self.update()
         self.window.mainloop()
-
+        
     def add_widgets(self):
         self.window = Tk()
         self.window.geometry('1200x800')
@@ -33,30 +43,77 @@ class FERApp:
         self.add_emotion_labels()
 
     def add_emotion_labels(self):
-        score = np.array([0.777, 0.625, 0.324, 0.2345, 0.113, 0.55343, 3.9234])
-        score = score / score.sum()
-        emotions = ["anger", "contempt", "disgust", "fear", "happy", "sadness", "surprise"]
-        for i in range(len(emotions)):
-            label = Label(self.window, text=emotions[i] +":"+ str(round(score[i], 6)), font=15,
+        self.angerLabel =  Label(self.window, text="anger:0.00", font=15,
                                 bg="white", fg= "black")
-            label.place(x=800, y=100+50*i)
+        self.angerLabel.place(x=800, y = 100)
+        self.contemptLabel =  Label(self.window, text="contempt:0.00", font=15,
+                                bg="white", fg= "black")
+        self.contemptLabel.place(x=800, y = 150)
+        self.disgustLabel =  Label(self.window, text="disgust:0.00", font=15,
+                                bg="white", fg= "black")
+        self.disgustLabel.place(x=800, y = 200)
+        self.fearLabel =  Label(self.window, text="fear:0.00", font=15,
+                                bg="white", fg= "black")
+        self.fearLabel.place(x=800, y = 250)
+        self.happyLabel =  Label(self.window, text="happy:0.00", font=15,
+                                bg="white", fg= "black")
+        self.happyLabel.place(x=800, y = 300)
+        self.sadnessLabel =  Label(self.window, text="sadness:0.00", font=15,
+                                bg="white", fg= "black")
+        self.sadnessLabel.place(x=800, y = 350)
+        self.surpriseLabel =  Label(self.window, text="surprise:0.00", font=15,
+                                bg="white", fg= "black")
+        self.surpriseLabel.place(x=800, y = 400)
+
 
     def snapshot(self):
         # used to capture the image with emoji, TODO
         captured, frame = self.video.getFrame()
+        frame, predictions = detect_face(frame, self.model, self.detector, self.predictor)
         if captured:
             image = "IMG-" + time.strftime("%H-%M-%S-%d-%m") + ".jpg"
             cv.imwrite(image, cv.cvtColor(frame, cv.COLOR_BGR2RGB))
             Label(self.window, text="image saved").place(x=430, y=510)
     
-    def update(self):
+
+    def get_stats(self):
         camera_open, frame = self.video.getFrame()
+        image, predictions = detect_face(frame, self.model, self.detector, self.predictor)
+        if len(predictions) > 0:
+            emotion = predictions[0]
+            self.angerLabel["text"] = "anger:" + str(emotion[0])
+            self.contemptLabel["text"] = "contempt:" +str(emotion[1])
+            self.disgustLabel["text"] = "disgust:" +str(emotion[2])
+            self.fearLabel["text"] = "fear:" +str(emotion[3])
+            self.happyLabel["text"] = "happy:" +str(emotion[4])
+            self.sadnessLabel["text"] = "sadness:" +str(emotion[5])
+            self.surpriseLabel["text"] = "surprise:" +str(emotion[6])
+
+
+    def update(self):
+        self.counter += 1
+        camera_open, frame = self.video.getFrame()
+        # process image here
+        if self.counter % 10 == 0:
+            self.counter = 0
+            image, predictions = detect_face(frame, self.model, self.detector, self.predictor)
+            if len(predictions) > 0:
+                emotion = predictions[0]
+                self.angerLabel["text"] = "anger:" + str(round(emotion[0], 3))
+                self.contemptLabel["text"] = "contempt:" +str(round(emotion[1], 3))
+                self.disgustLabel["text"] = "disgust:" +str(round(emotion[2], 3))
+                self.fearLabel["text"] = "fear:" +str(round(emotion[3], 3))
+                self.happyLabel["text"] = "happy:" +str(round(emotion[4], 3))
+                self.sadnessLabel["text"] = "sadness:" +str(round(emotion[5], 3))
+                self.surpriseLabel["text"] = "surprise:" +str(round(emotion[6], 3))
 
         if camera_open:
             self.cur_frame = ImageTk.PhotoImage(image=Image.fromarray(frame))
             self.canvas.create_image(0, 0, image=self.cur_frame, anchor=NW)
         
-        self.window.after(15, self.update) # rate to call update function
+        self.window.after(30, self.update) # rate to call update function
+
+
 
 
 
@@ -84,4 +141,6 @@ class CameraCapture:
 
 
 if __name__ == "__main__":
-    FERApp()
+    model_path = "model_data/vgg16.pt"
+    model = torch.load(model_path)
+    FERApp(model)
