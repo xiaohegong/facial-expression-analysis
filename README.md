@@ -1,9 +1,8 @@
 # Facial Expression Recognition
 
 ### How to train model
-
-* Using the the file with prefix train
-* Example: `python train_vgg16`
+* Run `python save_data.py` to store data in `./data/CK_data.h5` (Different model require you to run different save_* file)
+* Using the the file with prefix train_*, for example, `python train_vgg16.py` to train the model, you can store the model by change dst_path variable.
 
 ### How to run camera app:
 
