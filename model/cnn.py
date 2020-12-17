@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
 
+import cv2 as cv
 import numpy as np
 import matplotlib.pyplot as plt
 
@@ -28,7 +29,8 @@ class CNN(nn.Module):
         self.fc1 = nn.Linear(input_dims, self.num_classes)
         
         self.optimizer = optim.Adam(self.parameters(), lr=self.alpha)
-
+        # for parameter in self.parameters():
+        #     print(parameter)
         self.loss = nn.CrossEntropyLoss()
         self.to(self.device)
         self.get_data()
@@ -124,5 +126,13 @@ class CNN(nn.Module):
 
         print('total loss %.3f' % ep_loss,
                 'accuracy %.3f' % np.mean(ep_acc))
+
+    def predict(self, image):
+        image = cv.resize(image, (48, 48), interpolation=cv.INTER_AREA)
+        image = T.reshape(T.tensor(image), (1, 1, 48, 48)).float().to(self.device)
+        prediction = self.forward(image)
+        prediction = F.softmax(prediction, dim=1)
+        class_ = T.argmax(prediction, dim=1)
+        return prediction, class_
 
 
