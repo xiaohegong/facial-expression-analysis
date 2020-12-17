@@ -7,6 +7,7 @@ from process_face import detect_bipart
 import torch
 from detect_face import detect_face, setup
 import multiprocessing
+import argparse
 
 from model.vgg16 import VGG16
 
@@ -141,6 +142,10 @@ class CameraCapture:
 
 
 if __name__ == "__main__":
-    model_path = "model_data/vgg16.pt"
+    parser = argparse.ArgumentParser(description='Facial Expression Recognition')
+    parser.add_argument('--model', default='model_data/vgg16.pt')
+    arg = parser.parse_args()
+    
+    model_path = arg.model
     model = torch.load(model_path)
     FERApp(model)

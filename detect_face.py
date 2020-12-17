@@ -19,8 +19,6 @@ def detect_face(image, model, detector, predictor):
     image = image.copy()
     gray = cv.cvtColor(image, cv.COLOR_BGR2GRAY)
 
-    
-
     rects = detector(gray, 1)
 
     predictions = []
