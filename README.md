@@ -15,14 +15,12 @@
 
 * Example interface:
 
-  ![](D:\study\2020fall\csc420\Project\420project\facial-expression-analysis\result\camera_app_example.PNG)
+  <img src="./result/camera_app_example.PNG" style="zoom:50%;" />
 
 * Example snapshot(take photo button):
-
   
+  <img src="./result/IMG-20-12-13-14-12.jpg" style="zoom:50%;" />
 
-  <img src="D:\study\2020fall\csc420\Project\420project\facial-expression-analysis\result\IMG-20-12-13-14-12.jpg" style="zoom:50%;" />
+  <img src="./result/IMG-16-20-48-17-12.jpg" style="zoom:50%;" />
 
-  <img src="D:\study\2020fall\csc420\Project\420project\facial-expression-analysis\result\IMG-16-20-48-17-12.jpg" style="zoom:50%;" />
-
-  <img src="D:\study\2020fall\csc420\Project\420project\facial-expression-analysis\result\IMG-16-21-39-17-12.jpg" style="zoom:50%;" />
+  <img src="./result/IMG-16-21-39-17-12.jpg" style="zoom:50%;" />
