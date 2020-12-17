@@ -21,7 +21,7 @@ def load_data(images, label):
     return np.array(result)
 
 if __name__ == '__main__':
-    datapath = os.path.join("data", "fer2013_data.h5")
+    datapath = os.path.join("data", "CK_data.h5")
     f = h5py.File(datapath, "r")
     images = np.array(f['data_samples'])
     labels = np.array(f['data_labels'])
@@ -34,7 +34,7 @@ if __name__ == '__main__':
     model = VGG16(alpha=0.01, epochs=25, batch_size=1, dataset=spliter, num_classes=7)
     model._train()
 
-    dst_path = "model_data/vgg16.pt"
+    dst_path = "model_data/vgg16_ck.pt"
     if not os.path.exists(os.path.dirname(dst_path)):
         os.makedirs(os.path.dirname(dst_path))
 
