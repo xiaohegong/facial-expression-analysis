@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2 as cv
 
 import h5py
 import os
@@ -22,7 +23,7 @@ def shuffle_data(dataset):
     return np.split(dataset, [int(np.floor(N * 0.7)), int(N)])
 
 
-def gaussian_weights_init(m):
+def weights_init(m):
     """
     Initialize model weights to ~Normal Distribution.
     """
@@ -69,7 +70,7 @@ class CustomizedCNNModel(nn.Module):
             nn.LeakyReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
-        self.conv1.apply(gaussian_weights_init)
+        self.conv1.apply(weights_init)
 
         # (batch_size, 64, 24, 24) -> (batch_size, 128, 12, 12)
         self.conv2 = nn.Sequential(
@@ -78,7 +79,7 @@ class CustomizedCNNModel(nn.Module):
             nn.LeakyReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
-        self.conv2.apply(gaussian_weights_init)
+        self.conv2.apply(weights_init)
 
         # (batch_size, 128, 12, 12) -> (batch_size, 256, 6, 6)
         self.conv3 = nn.Sequential(
@@ -88,7 +89,7 @@ class CustomizedCNNModel(nn.Module):
             nn.LeakyReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
-        self.conv3.apply(gaussian_weights_init)
+        self.conv3.apply(weights_init)
 
         # (batch_size, 256, 6, 6) -> (batch_size, 512, 3, 3)
         self.conv4 = nn.Sequential(
@@ -97,7 +98,7 @@ class CustomizedCNNModel(nn.Module):
             nn.LeakyReLU(inplace=True),
             nn.MaxPool2d(kernel_size=2, stride=2),
         )
-        self.conv4.apply(gaussian_weights_init)
+        self.conv4.apply(weights_init)
 
         self.fc = nn.Sequential(
             nn.Dropout(p=0.1),
@@ -188,6 +189,15 @@ class CustomizedCNNModel(nn.Module):
 
         return result / num
 
+    def predict(self, image):
+        image = cv.resize(image, (48, 48), interpolation=cv.INTER_AREA)
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        image = torch.reshape(torch.tensor(image), (1, 1, 48, 48)).float().to(device)
+        prediction = self.forward(image)
+        prediction = nn.functional.softmax(prediction, dim=1)
+        emotion_class = torch.argmax(prediction, dim=1)
+        return prediction, emotion_class
+
 
 if __name__ == "__main__":
     # TRAINING MAIN
@@ -222,7 +232,7 @@ if __name__ == "__main__":
     plt.xlabel("Epoch")
     plt.ylabel("Accuracy")
 
-    plt.plot(list(range(1, NUM_EPOCHS+1)), model.loss_history)
+    plt.plot(list(range(1, NUM_EPOCHS + 1)), model.loss_history)
     plt.title("FER2013 Loss")
     plt.xlabel("Epoch")
     plt.ylabel("Loss")
