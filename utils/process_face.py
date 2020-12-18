@@ -11,7 +11,7 @@ def detect_bipart(img, create_clahe=False, clahe=None):
         gray = clahe.apply(gray)
 
     detector = dlib.get_frontal_face_detector()
-    predictor = dlib.shape_predictor("shape_predictor_68_face_landmarks.dat")
+    predictor = dlib.shape_predictor("utils/pretrained_face_detector/shape_predictor_68_face_landmarks.dat")
 
     rects = detector(gray, 1)
 
