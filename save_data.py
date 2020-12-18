@@ -1,3 +1,10 @@
+"""
+This file includes several ways to read the data samples from CK+/Fer2013 and then save desired features into .h5 format.
+    1. Normal: Save images with their corresponding labels as two dataset into data file
+    2. Bipart: Preprocess images and save the eyes and mouth parts respectively into two dataset.
+    3. Hog: Calculate hog feature and create a dataset to store HOG.
+"""
+
 import os
 import cv2 as cv
 import numpy as np
@@ -21,7 +28,13 @@ surprise = os.path.join(CK_DATASET, 'surprise')
 
 
 def save_fer2013():
-    # 0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral
+    """
+    This is normal save -- just store images and labels from FER2013
+    :return: Two datasets -- One for images and one for labels.
+             labels[i] is the true label of images[i]
+
+    0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral
+    """
     data = readcsv("./datasets/fer2013/fer2013.csv")
     samples, labels = process_data(data)
     datapath = os.path.join('data', 'fer2013_data.h5')
@@ -32,7 +45,13 @@ def save_fer2013():
 
 
 def save_ck_plus():
-    # used to store images and its coresponding labels
+    """
+    This is normal save -- just store images and labels from CK+
+    :return: Two datasets -- One for images and one for labels.
+             labels[i] is the true label of images[i]
+
+    0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral
+    """
     samples, labels = [], []
 
     datapath = os.path.join('data', 'CK_data.h5')
@@ -41,7 +60,6 @@ def save_ck_plus():
         os.makedirs(os.path.dirname(datapath))
 
     folders = [anger, contempt, disgust, fear, happy, sadness, surprise]
-
     for i, folder in enumerate(folders):
         images = np.array(os.listdir(folder))
         np.random.shuffle(images)  # shuffle image
@@ -50,6 +68,7 @@ def save_ck_plus():
             samples.append(image)
             labels.append(i)
 
+    # Create datasets
     datafile = h5py.File(datapath, 'w')
     datafile.create_dataset("data_samples", dtype='float32', data=samples)
     datafile.create_dataset("data_labels", dtype='int32', data=labels)
@@ -57,7 +76,13 @@ def save_ck_plus():
 
 
 def save_hog_bipart():
-    # used to store images and its coresponding labels
+    """
+    Store eyes and mouth parts as well as the hog of them for CK+.
+    :return: 5 datasets -- Eyes, mouth, eyes_hog, mouth_hog, labels
+
+    0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral
+    """
+
     eyes_samples = []
     mouth_samples = []
     hogs_eyes = []
@@ -70,10 +95,11 @@ def save_hog_bipart():
         os.makedirs(os.path.dirname(datapath))
 
     folders = [anger, contempt, disgust, fear, happy, sadness, surprise]
-
+    # Loop through all folders
     for i, folder in enumerate(folders):
         images = np.array(os.listdir(folder))
         np.random.shuffle(images)  # shuffle image
+
         for image in images:
             image = cv.imread(os.path.join(folder, image))
             mouth, eyes, hog_eyes, hog_mouth = detect_bipart(image)
@@ -83,6 +109,7 @@ def save_hog_bipart():
             hogs_mouth.append(hog_mouth)
             labels.append(i)
 
+    # Create dataset
     datafile = h5py.File(datapath, 'w')
     datafile.create_dataset("eyes_samples", dtype='float32', data=eyes_samples)
     datafile.create_dataset("mouth_samples", dtype='float32', data=mouth_samples)
@@ -93,10 +120,15 @@ def save_hog_bipart():
 
 
 def save_fer2013_bipart():
+    """
+    Store eyes and mouth parts for Fer2013.csv
+    :return: 3 datasets -- Eyes, mouth, labels
+
+    0=Angry, 1=Disgust, 2=Fear, 3=Happy, 4=Sad, 5=Surprise, 6=Neutral
+    """
     undetected, processed = 0, 0
     clahe = cv.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
 
-    # used to store images and its coresponding labels
     eyes_samples = []
     mouth_samples = []
     labels_new = []
@@ -109,7 +141,7 @@ def save_fer2013_bipart():
     for i in range(images.shape[0]):
         imageio.imwrite(IMAGE_LOCATION, images[i])
         image = cv.imread(IMAGE_LOCATION)
-
+        # Detect bipart features
         try:
             eyes, mouth = detect_bipart(image, create_clahe=True, clahe=clahe)
             processed += 1
@@ -122,7 +154,7 @@ def save_fer2013_bipart():
         eyes_samples.append(eyes)
         mouth_samples.append(mouth)
         labels_new.append(labels[i])
-
+    # Create datasets
     datafile = h5py.File(FER13_BY_PARTS_DATA, 'w')
     datafile.create_dataset("eyes_samples", dtype='float32', data=eyes_samples)
     datafile.create_dataset("mouth_samples", dtype='float32', data=mouth_samples)

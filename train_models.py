@@ -1,3 +1,8 @@
+"""
+This file contains all training part of our program. It uses the models implemented in /models/ and save
+the trained model to /model_data/ in .pt format.
+"""
+
 import matplotlib.pyplot as plt
 import h5py
 import os
@@ -8,12 +13,19 @@ from utils.hog_features import *
 import torch as torch
 from utils.common import load_data, shuffle_data
 
+# Decide which dataset we gonna use
 CK_DATA = "CK_bipart_data.h5"
 CK_DATA_HOG = "CK_bipart_hog.h5"
 FER13_DATA = "fer13_bipart_data.h5"
 
 
 def train_bipart_cnn():
+    """
+    Train bipart model of CK+/Fer2013 and save them into .pt format.
+    This is the CNN model A in our report
+    :return: Right now it produces the bipart model for fer2013 dataset. If you want to train CK+,
+    simply follow the comments below.
+    """
     # datapath = os.path.join("data", CK_DATA_HOG)
     datapath = os.path.join("data", FER13_DATA)
 
@@ -43,10 +55,12 @@ def train_bipart_cnn():
         # -----  For Fer2013 ----
         sample.append(np.array([get_hog(eyes_dataset[i][0]), labels[i]], dtype=object))
         sample.append(np.array([get_hog(mouth_dataset[i][0]), labels[i]], dtype=object))
+        # ------------------------
 
-        # ----- For CK+ -----
+        # ----- For CK+ --------
         # sample.append(hog_eyes_dataset[i])
         # sample.append(hog_mouth_dataset[i])
+        # --------------------
         result.append(np.array(sample))
 
     result = np.array(result)
@@ -66,18 +80,19 @@ def train_bipart_cnn():
 
 
 def train_dcnn_fer():
+    """
+    This our deep CNN model, which is the CNN model B in our report
+    :return: A FER2013 model in .pt format
+    """
     datapath = "data/fer2013_data.h5"
 
     f = h5py.File(datapath, "r")
     input = np.array(f['data_samples'])
     labels = np.array(f['data_labels'])
-
-    print(input.shape, labels.shape)
-
     dataset = load_data(input, labels)
-
     result = np.array(dataset)
 
+    # Input parameters
     NUM_EPOCHS = 200
     model = CustomizedCNNModel(alpha=0.0001, epochs=NUM_EPOCHS, batch_size=128,
                                dataset=shuffle_data(result), num_classes=7)
@@ -104,6 +119,10 @@ def train_dcnn_fer():
 
 
 def train_vgg16():
+    """
+    This is the VGG16 model, which is also mentioned in our report.
+    :return: A VGG16 model in .pt format
+    """
     datapath = os.path.join("data", "CK_data.h5")
     f = h5py.File(datapath, "r")
     images = np.array(f['data_samples'])
@@ -131,6 +150,12 @@ def test(model_path="model_data/cnn_by_parts.pt"):
 
 
 def upsampling(image, target_width, target_height):
+    """
+    This is a helper function used for upsampling
+    :param target_width
+    :param target_height
+    :return: image with size (target_height, target_width)
+    """
     # Require grey scale image
     dim = (target_width, target_height)
     resized = cv.resize(image, dim, interpolation=cv.INTER_AREA)
