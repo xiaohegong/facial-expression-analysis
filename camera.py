@@ -43,12 +43,12 @@ class FERApp:
         self.add_emotion_labels()
 
     def add_emotion_labels(self):
-        self.angerLabel = Label(self.window, text="anger:0.00", font=15,
+        self.angerLabel = Label(self.window, text="angry:0.00", font=15,
                                 bg="white", fg="black")
         self.angerLabel.place(x=800, y=100)
-        self.contemptLabel = Label(self.window, text="contempt:0.00", font=15,
-                                   bg="white", fg="black")
-        self.contemptLabel.place(x=800, y=150)
+        self.neutralLabel = Label(self.window, text="neutral:0.00", font=15,
+                                  bg="white", fg="black")
+        self.neutralLabel.place(x=800, y=150)
         self.disgustLabel = Label(self.window, text="disgust:0.00", font=15,
                                   bg="white", fg="black")
         self.disgustLabel.place(x=800, y=200)
@@ -58,7 +58,7 @@ class FERApp:
         self.happyLabel = Label(self.window, text="happy:0.00", font=15,
                                 bg="white", fg="black")
         self.happyLabel.place(x=800, y=300)
-        self.sadnessLabel = Label(self.window, text="sadness:0.00", font=15,
+        self.sadnessLabel = Label(self.window, text="sad:0.00", font=15,
                                   bg="white", fg="black")
         self.sadnessLabel.place(x=800, y=350)
         self.surpriseLabel = Label(self.window, text="surprise:0.00", font=15,
@@ -86,7 +86,7 @@ class FERApp:
             self.happyLabel["text"] = "happy:" + str(emotion[3])
             self.sadnessLabel["text"] = "sad:" + str(emotion[4])
             self.surpriseLabel["text"] = "surprise:" + str(emotion[5])
-            self.contemptLabel["text"] = "neutral:" + str(emotion[6])
+            self.neutralLabel["text"] = "neutral:" + str(emotion[6])
 
     def update(self):
         self.counter += 1
@@ -104,7 +104,7 @@ class FERApp:
                 self.happyLabel["text"] = "happy:" + str(round(emotion[3], 3))
                 self.sadnessLabel["text"] = "sad:" + str(round(emotion[4], 3))
                 self.surpriseLabel["text"] = "surprise:" + str(round(emotion[5], 3))
-                self.contemptLabel["text"] = "neutral:" + str(round(emotion[6], 3))
+                self.neutralLabel["text"] = "neutral:" + str(round(emotion[6], 3))
 
         if camera_open:
             self.cur_frame = ImageTk.PhotoImage(image=Image.fromarray(frame))

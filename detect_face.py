@@ -6,10 +6,7 @@ import dlib
 import numpy as np
 import torch
 
-from model.vgg16 import VGG16
-
-emotions = ["anger", "contempt", "disgust", "fear", "happy", "sadness", "surprise"]
-
+emotions = ["angry", "disgust", "fear", "happy", "sad", "surprise", "neutral"]
 
 def setup():
     detector = dlib.get_frontal_face_detector()
