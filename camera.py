@@ -30,7 +30,7 @@ class FERApp:
         # self.window.wm_iconbitmap("cam.ico")
         self.window['bg'] = "black"
         self.video = CameraCapture(self.vid_src)
-        Label(self.window, text="Welcome to our FER converter", font=15,
+        Label(self.window, text="Welcome to our facial expression analyzer", font=15,
               bg="black", fg="white").pack(side=TOP, fill=BOTH)
         # create canvas for video
         self.canvas = Canvas(self.window, width=self.video.width, height=self.video.height, bg="white")
