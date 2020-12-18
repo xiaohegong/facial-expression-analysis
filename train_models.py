@@ -143,9 +143,10 @@ def train_vgg16():
     torch.save(model, dst_path)
 
 
-def test(model_path="model_data/cnn_by_parts.pt"):
+def test(model_path="model_data/cnn_fer2013.pt"):
     model_path = model_path
-    model = torch.load(model_path)
+    device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+    model = torch.load(model_path, map_location=device)
     model._test()
 
 

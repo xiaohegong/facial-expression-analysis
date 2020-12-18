@@ -111,6 +111,7 @@ class CNNByParts(nn.Module):
             self.loss_history.append(ep_loss)
 
     def _test(self):
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         self.eval()
         ep_loss = 0
         ep_acc = []
