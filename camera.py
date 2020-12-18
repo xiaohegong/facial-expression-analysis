@@ -1,3 +1,8 @@
+"""
+This is our camera UI. It can capture an image and do prediction using the model trained by us. The detail instruction
+of how to use it is written in the README file.
+"""
+
 from tkinter import *
 import cv2 as cv
 from PIL import Image, ImageTk
@@ -40,6 +45,9 @@ class FERApp:
         self.add_emotion_labels()
 
     def add_emotion_labels(self):
+        """
+        Adding seven emotions symbols to the UI
+        """
         self.angerLabel = Label(self.window, text="angry:0.00", font=15,
                                 bg="white", fg="black")
         self.angerLabel.place(x=800, y=100)
@@ -63,7 +71,9 @@ class FERApp:
         self.surpriseLabel.place(x=800, y=400)
 
     def snapshot(self):
-        # used to capture the image with emoji, TODO
+        """
+        used to capture the image with emoji
+        """
         captured, frame = self.video.getFrame()
         frame, predictions = detect_face(frame, self.model, self.detector, self.predictor)
         if captured:
@@ -72,6 +82,9 @@ class FERApp:
             Label(self.window, text="image saved").place(x=430, y=510)
 
     def get_stats(self):
+        """
+        Get the predicted emotion
+        """
         camera_open, frame = self.video.getFrame()
         image, predictions = detect_face(frame, self.model, self.detector, self.predictor)
         if len(predictions) > 0:
@@ -86,6 +99,9 @@ class FERApp:
             self.neutralLabel["text"] = "neutral:" + str(emotion[6])
 
     def update(self):
+        """
+        Update the real time prediction on the screen
+        """
         self.counter += 1
         camera_open, frame = self.video.getFrame()
         # process image here
