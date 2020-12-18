@@ -4,6 +4,20 @@
 
 ## Running the program
 
+### Dependencies
+We used python3.7 for this project, along with the following dependencies:
+* torch
+* opencv-python
+* cmake
+* dlib
+* matplotlib
+* imutils
+* numpy
+* h5py
+* sklearn
+* tkinter
+* PIL
+
 ### Train model
 * Run `python3 main.py -train_model <model_name>` from the repository directory
   * The `<model_name>` can be one of `{bipart_cnn, dcnn_fer13}`
@@ -29,9 +43,6 @@ https://drive.google.com/file/d/1Xr8dEYBNQW8HhDFEjfMvNZAGv32GZgvw/view?usp=shari
 * command: `python3 camera.py --model <path/to/your/model>`
 
 * Example: `python3 camera.py --model ./model_data/cnn_fer2013.pt`
-
-* Example interface:
-
 
 * Example snapshot(take photo button):
   

@@ -132,6 +132,7 @@ class CNNByParts(nn.Module):
 
     def _test(self):
         self.eval()
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         ep_loss = 0
         ep_acc = []
         for _, (eyes, mouths, hogs_for_eye, hogs_for_mouth) in enumerate(self.test_data_loader):

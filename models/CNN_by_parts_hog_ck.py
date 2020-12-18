@@ -133,6 +133,7 @@ class CNNByParts(nn.Module):
 
     def _test(self):
         self.eval()
+        self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         ep_loss = 0
         ep_acc = []
         for _, (eyes, mouths, hogs_for_eye, hogs_for_mouth) in enumerate(self.test_data_loader):
@@ -160,6 +161,7 @@ class CNNByParts(nn.Module):
 
             ep_acc.append(acc.item())
             ep_loss += loss.item()
+
 
         print('total loss %.3f' % ep_loss,
               'accuracy %.3f' % np.mean(ep_acc))
