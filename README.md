@@ -25,8 +25,8 @@ We used python3.7 for this project, along with the following dependencies:
   
 ### Test model
 * Run `python3 main.py -test_model <model_name>` from the repository directory
-  * The `<model_name>` can be one of `{bipart_cnn, dcnn_fer13}`
-  * E.g., run `python3 main.py -train_model dcnn_fer13`
+  * The `<model_name>` can be one of `{bipart_cnn, dcnn_fer13, bipart_ck+}`
+  * E.g., run `python3 main.py -test_model dcnn_fer13`
 
 ### Save data
 * Run `python3 main.py -save_data <data_name>` from the repository directory
