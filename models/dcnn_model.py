@@ -167,3 +167,19 @@ class CustomizedCNNModel(nn.Module):
     def _test(self):
         self.device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
         test_data(self, self.test_data_loader)
+
+    def _test_data(self, dataset):
+        self.eval()
+        result, num = 0.0, 0
+        for images, labels in dataset:
+            tensor = torch.tensor(images)
+            tensor = torch.reshape(tensor, (1, 1, 48, 48)).to(self.device)
+            label = torch.tensor(labels)
+            label = label.type(torch.LongTensor).to(self.device)
+
+            pred = self.forward(tensor)
+            pred = torch.argmax(pred, axis=1)
+            result += torch.sum((pred == label)).item()
+            num += 1
+
+        return result / num
