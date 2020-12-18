@@ -10,6 +10,8 @@ import time
 import torch
 from utils.detect_face import detect_face, setup
 import argparse
+from models.dcnn_model import CustomizedCNNModel
+from models.CNN_by_parts import CNNByParts
 
 
 class FERApp:
