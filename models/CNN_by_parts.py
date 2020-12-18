@@ -75,10 +75,6 @@ class CNNByParts(nn.Module):
         self.test_data_loader = self.dataset[1]
         print(self.train_data_loader.shape)
         print(self.test_data_loader.shape)
-        # print("size of eyes training data", self.eyes_train_data_loader.shape)
-        # print("size of eyes test data", self.eyes_test_data_loader.shape)
-        # print("size of mouth training data", self.mouth_train_data_loader.shape)
-        # print("size of mouth test data", self.mouth_test_data_loader.shape)
         print("=====================Done!=======================")
 
     def _train(self):
@@ -87,23 +83,17 @@ class CNNByParts(nn.Module):
             ep_loss = 0
             ep_acc = []
             for _, (eyes, mouths) in enumerate(self.train_data_loader):
-                # print(eyes.shape, mouth.shape)
-                # break
                 eye = torch.tensor(eyes[0])
                 eye = torch.reshape(eye, (1, 1, 32, 64)).to(self.device)
                 mouth = torch.tensor(mouths[0])
                 mouth = torch.reshape(mouth, (1, 1, 32, 64)).to(self.device)
                 label = torch.tensor([eyes[1]])
                 label = label.type(torch.LongTensor).to(self.device)
-                # label = torch.reshape(label, (1, 1, 7))
                 self.optimizer.zero_grad()
                 prediction = self.forward(eye, mouth)
-                # print(prediction)
                 loss = self.loss(prediction, label)
-                # print("Losssssssssssss:", loss)
 
                 prediction = F.softmax(prediction, dim=1)
-                # print("correct!")
                 class_ = torch.argmax(prediction, dim=1)
                 wrong = torch.where(class_ != label,
                                 torch.tensor([1.]).to(self.device),
@@ -146,8 +136,3 @@ class CNNByParts(nn.Module):
 
         print('total loss %.3f' % ep_loss,
               'accuracy %.3f' % np.mean(ep_acc))
-
-
-if __name__ == "__main__":
-    if torch.cuda.is_available():
-        print("available!")

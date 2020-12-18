@@ -3,11 +3,8 @@ import cv2 as cv
 from PIL import Image, ImageTk
 import time
 import torch
-from detect_face import detect_face, setup
+from utils.detect_face import detect_face, setup
 import argparse
-from model.dcnn_model import CustomizedCNNModel
-
-from model.vgg16 import VGG16
 
 
 class FERApp:

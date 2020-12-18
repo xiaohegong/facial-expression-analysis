@@ -2,25 +2,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 import numpy as np
-import matplotlib.pyplot as plt
 import cv2 as cv
-
-import h5py
-import os
-
-
-def load_data(images, label):
-    n = images.shape[0]
-    result = []
-    for i in range(n):
-        result.append([images[i], label[i]])
-    return np.array(result, dtype=object)
-
-
-def shuffle_data(dataset):
-    np.random.shuffle(dataset)
-    N = dataset.shape[0]
-    return np.split(dataset, [int(np.floor(N * 0.7)), int(N)])
 
 
 def weights_init(m):
@@ -136,6 +118,15 @@ class CustomizedCNNModel(nn.Module):
         print(self.test_data_loader.shape)
         print("=====================Done!=======================")
 
+    def predict(self, image):
+        image = cv.resize(image, (48, 48), interpolation=cv.INTER_AREA)
+        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
+        image = torch.reshape(torch.tensor(image), (1, 1, 48, 48)).float().to(device)
+        prediction = self.forward(image)
+        prediction = nn.functional.softmax(prediction, dim=1)
+        emotion_class = torch.argmax(prediction, dim=1)
+        return prediction, emotion_class
+
     def _train(self):
         self.train()
         for i in range(self.epochs):
@@ -188,51 +179,3 @@ class CustomizedCNNModel(nn.Module):
             num += 1
 
         return result / num
-
-    def predict(self, image):
-        image = cv.resize(image, (48, 48), interpolation=cv.INTER_AREA)
-        device = torch.device('cuda:0' if torch.cuda.is_available() else 'cpu')
-        image = torch.reshape(torch.tensor(image), (1, 1, 48, 48)).float().to(device)
-        prediction = self.forward(image)
-        prediction = nn.functional.softmax(prediction, dim=1)
-        emotion_class = torch.argmax(prediction, dim=1)
-        return prediction, emotion_class
-
-
-if __name__ == "__main__":
-    # TRAINING MAIN
-    datapath = "/content/drive/MyDrive/CSC420_project/fer2013_data.h5"  # TODO: <- change path
-
-    f = h5py.File(datapath, "r")
-    input = np.array(f['data_samples'])
-    labels = np.array(f['data_labels'])
-
-    print(input.shape, labels.shape)
-
-    dataset = load_data(input, labels)
-
-    result = np.array(dataset)
-
-    NUM_EPOCHS = 200
-    model = CustomizedCNNModel(alpha=0.0001, epochs=NUM_EPOCHS, batch_size=128,
-                               dataset=shuffle_data(result), num_classes=7)
-    model._train()
-
-    dst_path = "model_data/cnn_fer2013.pt"
-    if not os.path.exists(os.path.dirname(dst_path)):
-        os.makedirs(os.path.dirname(dst_path))
-
-    torch.save(model, dst_path)
-
-    # Plot
-    plt.plot(model.epochs_record, model.acc_train)
-    plt.plot(model.epochs_record, model.acc_test)
-    plt.legend(['train', 'test'], loc='upper left')
-    plt.title("FER2013 Accuracy")
-    plt.xlabel("Epoch")
-    plt.ylabel("Accuracy")
-
-    plt.plot(list(range(1, NUM_EPOCHS + 1)), model.loss_history)
-    plt.title("FER2013 Loss")
-    plt.xlabel("Epoch")
-    plt.ylabel("Loss")

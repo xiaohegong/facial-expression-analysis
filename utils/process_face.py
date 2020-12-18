@@ -1,6 +1,5 @@
 from imutils import face_utils
 import cv2 as cv
-import matplotlib.pyplot as plt
 import dlib
 import numpy as np
 
@@ -70,9 +69,3 @@ def detect_bipart(img, create_clahe=False, clahe=None):
     eyes = cv.cvtColor(eyes, cv.COLOR_BGR2GRAY)
     # mouth 100x250, eyes 50x200
     return [mouth, eyes]
-
-# if __name__ == "__main__":
-#     image = cv.imread('portrait.jpeg')
-#     mouth, eyes = detect_bipart(image)
-#     plt.imshow(eyes, cmap='gray')
-#     plt.show()
